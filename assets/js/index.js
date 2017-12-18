@@ -620,7 +620,7 @@ Monster = function(){
   this.footUsed = "left";
   this.transferPower = {x:0,y:0};
 
-  var torsoGeom = new THREE.CubeGeometry(15,15,20, 1);
+  var torsoGeom = new THREE.CubeGeometry(20,20,30, 1);
   this.torso = new THREE.Mesh(torsoGeom, brownMat);
   
   // head
@@ -785,8 +785,9 @@ Monster = function(){
     this.head.add(this.cheeks);
     this.head.add(this.mouth);
     
-    this.head.position.y = this.bodyHeight-15;
-    this.head.position.z = -5;
+    this.head.position.x = 0;
+    this.head.position.y = this.bodyHeight-15 -60;
+    this.head.position.z = 35;
   
   /* var headGeom = new THREE.CubeGeometry(20,20,40, 1);
   headGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,20));
@@ -896,7 +897,7 @@ Monster = function(){
   
   var eyeGeom = new THREE.CubeGeometry(2,4,4); */
   
-  var tailGeom = new THREE.CylinderGeometry(5,2, 20, 4, 1);
+  var tailGeom = new THREE.CylinderGeometry(7, 3, 30, 4, 1);
   tailGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,10,0));
   tailGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
   tailGeom.applyMatrix(new THREE.Matrix4().makeRotationZ(Math.PI/4));
@@ -907,7 +908,7 @@ Monster = function(){
   this.torso.add(this.tail);
   
   
-  var pawGeom = new THREE.CylinderGeometry(1.5,0,10);
+  var pawGeom = new THREE.CylinderGeometry(3,0,20);
   pawGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,-5,0));
   this.pawFL = new THREE.Mesh(pawGeom, brownMat);
   this.pawFL.position.y = -7.5;
@@ -939,6 +940,13 @@ Monster = function(){
   this.pawBR.castShadow = true;
   
   this.body.rotation.y = Math.PI/2;
+
+  this.mesh.traverse( function ( object ) {
+    if ( object instanceof THREE.Mesh ) {
+      object.castShadow = true;
+      object.receiveShadow = true;
+    }
+  } );
 }
 
 Cat = function(){
@@ -1219,7 +1227,7 @@ Cat = function(){
     
     this.head.position.y = this.bodyHeight-15;
     this.head.position.z = -5;
-    this.head.scale.set(0.4,0.4,0.4);
+    //this.head.scale.set(0.4,0.4,0.4);
   
   
     // shoulders
