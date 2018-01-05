@@ -27,6 +27,10 @@ var monsterAcceleration = 0.004;
 var malusClearColor = 0xb44b39;
 var malusClearAlpha = 0;
 
+var mousePos = { x: 0, y: 0 },
+    oldMousePos = {x:0, y: 0},
+    ballWallDepth = 28;
+
 // Materials
 var blackMat = new THREE.MeshPhongMaterial({
     color: 0x100707,
@@ -116,6 +120,7 @@ function createScene() {
     container.appendChild(renderer.domElement);
 
     window.addEventListener('resize', handleWindowResize, false);
+    document.addEventListener('mousemove', handleMouseMove, false);
     //document.addEventListener('mousedown', handleMouseDown, false);
     //document.addEventListener("touchend", handleMouseDown, false);
     clock = new THREE.Clock();
@@ -129,6 +134,10 @@ function handleWindowResize() {
     camera.aspectRatio = width / height;
     camera.updateProjectionMatrix();
 }
+
+function handleMouseMove(event) {
+  mousePos = {x:event.clientX, y:event.clientY};
+} 
 
 // LIGHTS
 
@@ -949,7 +958,42 @@ Monster = function(){
   } );
 }
 
-Cat = function(){
+Monster.prototype.run = function(){
+  var s = Math.min(speed,maxSpeed);
+  this.runningCycle += delta * s * .7;
+  this.runningCycle = this.runningCycle % (Math.PI*2);
+  var t = this.runningCycle;
+
+  this.pawFR.rotation.x = Math.sin(t)*Math.PI/4;
+  this.pawFR.position.y = -5.5 - Math.sin(t);
+  this.pawFR.position.z = 7.5 + Math.cos(t);
+
+  this.pawFL.rotation.x = Math.sin(t+.4)*Math.PI/4;
+  this.pawFL.position.y = -5.5 - Math.sin(t+.4);
+  this.pawFL.position.z = 7.5 + Math.cos(t+.4);
+
+  this.pawBL.rotation.x = Math.sin(t+2)*Math.PI/4;
+  this.pawBL.position.y = -5.5 - Math.sin(t+3.8);
+  this.pawBL.position.z = -7.5 + Math.cos(t+3.8);
+
+  this.pawBR.rotation.x = Math.sin(t+2.4)*Math.PI/4;
+  this.pawBR.position.y = -5.5 - Math.sin(t+3.4);
+  this.pawBR.position.z = -7.5 + Math.cos(t+3.4);
+
+  this.torso.rotation.x = Math.sin(t)*Math.PI/8;
+  this.torso.position.y = 3-Math.sin(t+Math.PI/2)*3;
+
+  //this.head.position.y = 5-Math.sin(t+Math.PI/2)*2;
+  this.head.rotation.x = -.1+Math.sin(-t-1)*.4;
+  this.mouth.rotation.x = .2 + Math.sin(t+Math.PI+.3)*.4;
+
+  this.tail.rotation.x = .2 + Math.sin(t-Math.PI/2);
+
+  //this.eyeR.scale.y = .5 + Math.sin(t+Math.PI)*.5;
+}
+
+
+/* Cat = function(){
     this.threeGroup = new THREE.Group();
     
     var yellowMat = new THREE.MeshLambertMaterial ({
@@ -1443,31 +1487,30 @@ Cat = function(){
         object.receiveShadow = true;
       }
     } );
+} */
+
+function createCat() {
+  /* hero = new Dragon();
+  hero.threegroup.rotation.y = Math.PI/2;
+  hero.threegroup.position.set(0,10,10);
+  hero.threegroup.scale.set(0.2,0.2,0.2);
+  scene.add(hero.threegroup); */
+  //hero.nod();
+
+  /* hero = new Cat();
+  hero.threeGroup.rotation.y = Math.PI/2;
+  hero.threeGroup.position.set(0,0,-50);
+  hero.threeGroup.scale.set(0.2,0.2,0.2);
+  scene.add(hero.threeGroup); */
+  cat = new Monster();
+  cat.mesh.scale.set(0.4,0.4,0.4);
+  cat.mesh.position.z = 50;
+  scene.add(cat.mesh);
+  updateCatPosition();
 }
-Monster.prototype.run = function(){
-    //this.leftArm.rotation.z = -Math.PI/8;
-    //this.leftShoulder.position.x = -100;
-    //TweenMax.to(this.leftArm.rotation, speed, {y:-Math.PI/8, ease:Back.easeOut} );
-    /* var shoulder,arm, foreArm, foot;
-    if (side == "right"){
-      shoulder = this.rightShoulder;
-      arm = this.rightArm;
-      foreArm = this.rightForeArm;
-      foot = this.rightFoot;
-    }else{
-      shoulder = this.leftShoulder;
-      arm = this.leftArm;
-      foreArm = this.leftForeArm;
-      foot = this.leftFoot;
-    }
-    var ease = ease || Back.easeOut;
-  
-    var tFootAngle = Math.min (-angles.beta, Math.PI*1.5) ;
-  
-    TweenMax.to(shoulder.rotation, speed, {y:angles.theta, ease:ease} );
-    TweenMax.to(arm.rotation, speed, {x:angles.alpha, ease:ease} );
-    TweenMax.to(foreArm.rotation, speed, {x:angles.beta, ease:ease, onComplete:callBack} );
-    TweenMax.to(foot.rotation, speed, {x:tFootAngle, ease:ease} ); */
+
+function updateCatPosition() {
+  cat.run();
 }
 
 function createHero() {
@@ -1490,129 +1533,129 @@ function createHero() {
 }
 
 function createBall() {
-    ball = new Ball();
-    ball.threeGroup.scale.set(0.2,0.2,0.2);
-    ball.threeGroup.position.set(10,6,0);
-    scene.add(ball.threeGroup);
-  }
+  ball = new Ball();
+  ball.threeGroup.scale.set(0.4,0.4,0.4);
+  ball.threeGroup.position.set(10,6,50);
+  scene.add(ball.threeGroup);
+}
   
   // BALL RELATED CODE
   
   
-  var woolNodes = 10,
-      woolSegLength = 2,
-      gravity = -.8,
-      accuracy =1;
-  
-  
-  Ball = function(){
-  
-      var redMat = new THREE.MeshLambertMaterial ({
-          color: 0x630d15, 
-          shading:THREE.FlatShading
-      });
-  
-      var stringMat = new THREE.LineBasicMaterial({
-          color: 0x630d15,
-          linewidth: 3
-      });
-  
-      this.threeGroup = new THREE.Group();
-      this.ballRay = 8;
-  
-      this.verts = [];
-  
-      // string
-      var stringGeom = new THREE.Geometry();
-  
-      for (var i=0; i< woolNodes; i++	){
-          var v = new THREE.Vector3(0, -i*woolSegLength, 0);
-          stringGeom.vertices.push(v);
-  
-          var woolV = new WoolVert();
-          woolV.x = woolV.oldx = v.x;
-          woolV.y = woolV.oldy = v.y;
-          woolV.z = 0;
-          woolV.fx = woolV.fy = 0;
-          woolV.isRootNode = (i==0);
-          woolV.vertex = v;
-          if (i > 0) woolV.attach(this.verts[(i - 1)]);
-          this.verts.push(woolV);
-          
-      }
-        this.string = new THREE.Line(stringGeom, stringMat);
-  
-        // body
-        var bodyGeom = new THREE.SphereGeometry(this.ballRay, 5,4);
-      this.body = new THREE.Mesh(bodyGeom, redMat);
-        this.body.position.y = -woolSegLength*woolNodes;
-  
-        var wireGeom = new THREE.TorusGeometry( this.ballRay, .5, 3, 10, Math.PI*2 );
-        this.wire1 = new THREE.Mesh(wireGeom, redMat);
-        this.wire1.position.x = 1;
-        this.wire1.rotation.x = -Math.PI/4;
-  
-        this.wire2 = this.wire1.clone();
-        this.wire2.position.y = 1;
-        this.wire2.position.x = -1;
-        this.wire1.rotation.x = -Math.PI/4 + .5;
-        this.wire1.rotation.y = -Math.PI/6;
-  
-        this.wire3 = this.wire1.clone();
-        this.wire3.rotation.x = -Math.PI/2 + .3;
-  
-        this.wire4 = this.wire1.clone();
-        this.wire4.position.x = -1;
-        this.wire4.rotation.x = -Math.PI/2 + .7;
-  
-        this.wire5 = this.wire1.clone();
-        this.wire5.position.x = 2;
-        this.wire5.rotation.x = -Math.PI/2 + 1;
-  
-        this.wire6 = this.wire1.clone();
-        this.wire6.position.x = 2;
-        this.wire6.position.z = 1;
-        this.wire6.rotation.x = 1;
-  
-        this.wire7 = this.wire1.clone();
-        this.wire7.position.x = 1.5;
-        this.wire7.rotation.x = 1.1;
-  
-        this.wire8 = this.wire1.clone();
-        this.wire8.position.x = 1;
-        this.wire8.rotation.x = 1.3;
-  
-        this.wire9 = this.wire1.clone();
-        this.wire9.scale.set(1.2,1.1,1.1);
-        this.wire9.rotation.z = Math.PI/2;
-        this.wire9.rotation.y = Math.PI/2;
-        this.wire9.position.y = 1;
+var woolNodes = 10,
+    woolSegLength = 2,
+    gravity = -.8,
+    accuracy =1;
+
+
+Ball = function(){
+
+    var redMat = new THREE.MeshLambertMaterial ({
+        color: 0x630d15, 
+        shading:THREE.FlatShading
+    });
+
+    var stringMat = new THREE.LineBasicMaterial({
+        color: 0x630d15,
+        linewidth: 3
+    });
+
+    this.threeGroup = new THREE.Group();
+    this.ballRay = 8;
+
+    this.verts = [];
+
+    // string
+    var stringGeom = new THREE.Geometry();
+
+    for (var i=0; i< woolNodes; i++	){
+        var v = new THREE.Vector3(0, -i*woolSegLength, 0);
+        stringGeom.vertices.push(v);
+
+        var woolV = new WoolVert();
+        woolV.x = woolV.oldx = v.x;
+        woolV.y = woolV.oldy = v.y;
+        woolV.z = 50;
+        woolV.fx = woolV.fy = 0;
+        woolV.isRootNode = (i==0);
+        woolV.vertex = v;
+        if (i > 0) woolV.attach(this.verts[(i - 1)]);
+        this.verts.push(woolV);
         
-        this.body.add(this.wire1);
-        this.body.add(this.wire2);
-        this.body.add(this.wire3);
-        this.body.add(this.wire4);
-        this.body.add(this.wire5);
-        this.body.add(this.wire6);
-        this.body.add(this.wire7);
-        this.body.add(this.wire8);
-        this.body.add(this.wire9);
-  
-        this.threeGroup.add(this.string);
-      this.threeGroup.add(this.body);
-  
-      this.threeGroup.traverse( function ( object ) {
-      if ( object instanceof THREE.Mesh ) {
-        object.castShadow = true;
-        object.receiveShadow = true;
-      }});
-  
-  }
+    }
+      this.string = new THREE.Line(stringGeom, stringMat);
+
+      // body
+      var bodyGeom = new THREE.SphereGeometry(this.ballRay, 5,4);
+    this.body = new THREE.Mesh(bodyGeom, redMat);
+      this.body.position.y = -woolSegLength*woolNodes;
+
+      var wireGeom = new THREE.TorusGeometry( this.ballRay, .5, 3, 10, Math.PI*2 );
+      this.wire1 = new THREE.Mesh(wireGeom, redMat);
+      this.wire1.position.x = 1;
+      this.wire1.rotation.x = -Math.PI/4;
+
+      this.wire2 = this.wire1.clone();
+      this.wire2.position.y = 1;
+      this.wire2.position.x = -1;
+      this.wire1.rotation.x = -Math.PI/4 + .5;
+      this.wire1.rotation.y = -Math.PI/6;
+
+      this.wire3 = this.wire1.clone();
+      this.wire3.rotation.x = -Math.PI/2 + .3;
+
+      this.wire4 = this.wire1.clone();
+      this.wire4.position.x = -1;
+      this.wire4.rotation.x = -Math.PI/2 + .7;
+
+      this.wire5 = this.wire1.clone();
+      this.wire5.position.x = 2;
+      this.wire5.rotation.x = -Math.PI/2 + 1;
+
+      this.wire6 = this.wire1.clone();
+      this.wire6.position.x = 2;
+      this.wire6.position.z = 1;
+      this.wire6.rotation.x = 1;
+
+      this.wire7 = this.wire1.clone();
+      this.wire7.position.x = 1.5;
+      this.wire7.rotation.x = 1.1;
+
+      this.wire8 = this.wire1.clone();
+      this.wire8.position.x = 1;
+      this.wire8.rotation.x = 1.3;
+
+      this.wire9 = this.wire1.clone();
+      this.wire9.scale.set(1.2,1.1,1.1);
+      this.wire9.rotation.z = Math.PI/2;
+      this.wire9.rotation.y = Math.PI/2;
+      this.wire9.position.y = 1;
+      
+      this.body.add(this.wire1);
+      this.body.add(this.wire2);
+      this.body.add(this.wire3);
+      this.body.add(this.wire4);
+      this.body.add(this.wire5);
+      this.body.add(this.wire6);
+      this.body.add(this.wire7);
+      this.body.add(this.wire8);
+      this.body.add(this.wire9);
+
+      this.threeGroup.add(this.string);
+    this.threeGroup.add(this.body);
+
+    this.threeGroup.traverse( function ( object ) {
+    if ( object instanceof THREE.Mesh ) {
+      object.castShadow = true;
+      object.receiveShadow = true;
+    }});
+
+}
 
 WoolVert = function(){
 	this.x = 0;
 	this.y = 0;
-	this.z = 0;
+	this.z = 50;
 	this.oldx = 0;
 	this.oldy = 0;
 	this.fx = 0;
@@ -1622,16 +1665,122 @@ WoolVert = function(){
 	this.vertex = null;
 }
 
-Constraint = function(p1, p2) {
-    this.p1 = p1;
-    this.p2 = p2;
-    this.length = woolSegLength;
-  };
 
+WoolVert.prototype.update = function(){
+	var wind = 0;//.1+Math.random()*.5;
+  	this.add_force(wind, gravity);
+
+  	nx = this.x + ((this.x - this.oldx)*.9) + this.fx;
+  	ny = this.y + ((this.y - this.oldy)*.9) + this.fy;
+  	this.oldx = this.x;
+  	this.oldy = this.y;
+  	this.x = nx;
+  	this.y = ny;
+
+  	this.vertex.x = this.x;
+  	this.vertex.y = this.y;
+  	this.vertex.z = this.z;
+
+  	this.fy = this.fx = 0
+}
 
 WoolVert.prototype.attach = function(point) {
-    this.constraints.push(new Constraint(this, point));
-  };
+  this.constraints.push(new Constraint(this, point));
+};
+
+WoolVert.prototype.add_force = function(x, y) {
+  this.fx += x;
+  this.fy += y;
+};
+
+Constraint = function(p1, p2) {
+  this.p1 = p1;
+  this.p2 = p2;
+  this.length = woolSegLength;
+};
+
+/* Ball.prototype.update = function(posX, posY, posZ){
+		
+	var i = accuracy;
+	
+	while (i--) {
+		
+		var nodesCount = woolNodes;
+		
+		while (nodesCount--) {
+		
+			var v = this.verts[nodesCount];
+			
+			if (v.isRootNode) {
+			    v.x = posX;
+			    v.y = posY;
+			    v.z = posZ;
+			}
+		
+			else {
+		
+				var constraintsCount = v.constraints.length;
+		  		
+		  		while (constraintsCount--) {
+		  			
+		  			var c = v.constraints[constraintsCount];
+
+		  			var diff_x = c.p1.x - c.p2.x,
+					    diff_y = c.p1.y - c.p2.y,
+					    dist = Math.sqrt(diff_x * diff_x + diff_y * diff_y),
+					    diff = (c.length - dist) / dist;
+
+				  	var px = diff_x * diff * .5;
+				  	var py = diff_y * diff * .5;
+
+				  	c.p1.x += px;
+				  	c.p1.y += py;
+				  	c.p2.x -= px;
+				  	c.p2.y -= py;
+				  	c.p1.z = c.p2.z = posZ;
+		  		}
+
+		  		if (nodesCount == woolNodes-1){
+		  			this.body.position.x = this.verts[nodesCount].x;
+					this.body.position.y = this.verts[nodesCount].y;
+					this.body.position.z = this.verts[nodesCount].z;
+
+					this.body.rotation.z += (v.y <= this.ballRay)? (v.oldx-v.x)/10 : Math.min(Math.max( diff_x/2, -.1 ), .1);
+		  		}
+		  	}
+		  	
+		  	//if (v.y < this.ballRay) {
+		  	//	v.y = this.ballRay;
+		  	//}
+		}
+	}
+
+	nodesCount = woolNodes;
+	while (nodesCount--) this.verts[nodesCount].update();
+
+	this.string.geometry.verticesNeedUpdate = true;
+
+	
+}
+
+Ball.prototype.receivePower = function(tp){
+	this.verts[woolNodes-1].add_force(tp.x, tp.y);
+}
+
+function getBallPos(){
+  var vector = new THREE.Vector3();
+
+  vector.set(
+      ( mousePos.x / window.innerWidth ) * 2 - 1, 
+      - ( mousePos.y / window.innerHeight ) * 2 + 1,
+      0.1 );
+
+  vector.unproject( camera );
+  var dir = vector.sub( camera.position ).normalize();
+  var distance = (ballWallDepth - camera.position.z) / dir.z;
+  var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+  return pos;
+} */
 
 function updateFloorRotation(){
     floorRotation += delta*.03 * speed;
@@ -1639,23 +1788,33 @@ function updateFloorRotation(){
     floor.rotation.z = floorRotation;
   }
 
+function updateDistance() {
+  distance += delta * speed;
+  var d = distance / 2;
+  //fieldDistance.inn
+}
+
 function loop(){
     delta = clock.getDelta();
     updateFloorRotation();
-    hero.run();
+    //hero.run();
     
-   /*  if (gameStatus == "play"){
+    if (gameStatus == "play"){
       
-      if (hero.status == "running"){
-        hero.run();
-      }
+      //if (hero.status == "running"){
+        //hero.run();
+      //}
       updateDistance();
-      updateMonsterPosition();
-      updateCarrotPosition();
-      updateObstaclePosition();
-      checkCollision();
-    }  */
-    render();  
+      updateCatPosition();
+      //updateCarrotPosition();
+      //updateObstaclePosition();
+      //checkCollision();
+    } 
+    render();
+    //var ballPos = getBallPos();
+    //ball.update(ballPos.x,ballPos.y , ballPos.z + 75);
+    //ball.receivePower(hero.transferPower);
+    //hero.interactWithBall(ball.body.position);  
     requestAnimationFrame(loop);
 }
 
@@ -1666,11 +1825,12 @@ function render() {
 window.addEventListener('load', init, false);
 
 function init() {
+    gameStatus = 'play';
     createScene();
     createLights();
     createFloor();
     createFirs();
-    createHero();
+    createCat();
     createBall();
     loop();
     
