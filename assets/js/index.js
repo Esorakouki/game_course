@@ -121,7 +121,7 @@ function createScene() {
 
     window.addEventListener('resize', handleWindowResize, false);
     document.addEventListener('mousemove', handleMouseMove, false);
-    //document.addEventListener('mousedown', handleMouseDown, false);
+    document.addEventListener('mousedown', handleMouseDown, false);
     //document.addEventListener("touchend", handleMouseDown, false);
     clock = new THREE.Clock();
     
@@ -137,7 +137,14 @@ function handleWindowResize() {
 
 function handleMouseMove(event) {
   mousePos = {x:event.clientX, y:event.clientY};
-} 
+}
+
+function handleMouseDown(event){
+  if (gameStatus == "play") ball.jump();
+  else if (gameStatus == "readyToReplay"){
+    replay();
+  }
+}
 
 // LIGHTS
 
@@ -725,502 +732,29 @@ Monster.prototype.run = function(){
   //this.eyeR.scale.y = .5 + Math.sin(t+Math.PI)*.5;
 }
 
-
-/* Cat = function(){
-    this.threeGroup = new THREE.Group();
-    
-    var yellowMat = new THREE.MeshLambertMaterial ({
-      color: 0xfdd276, 
-      shading:THREE.FlatShading
-    });
-  
-    var pinkMat = new THREE.MeshLambertMaterial ({
-      color: 0xe0877e,//0xe0a79f, 
-      shading:THREE.FlatShading
-    });
-  
-    var redMat = new THREE.MeshLambertMaterial ({
-      color: 0x630d15, 
-      shading:THREE.FlatShading
-    });
-  
-    var whiteMat = new THREE.MeshLambertMaterial ({
-      color: 0xffffff, 
-      shading:THREE.FlatShading
-    });
-  
-    var blackMat = new THREE.MeshLambertMaterial ({
-      color: 0x111111, 
-      shading:THREE.FlatShading
-    });
-    var brownMat = new THREE.MeshLambertMaterial ({
-      color: 0x2e2019,//0x4b342a, 
-      shading:THREE.FlatShading
-    });
-  
-    var lightBrownMat = new THREE.MeshLambertMaterial ({
-      color: 0x664f4a, 
-      shading:THREE.FlatShading
-    });
-  
-    this.handHeight = 10;
-    this.bodyHeight = 80;
-    this.armHeight = ((this.bodyHeight * 3/5) - this.handHeight)/2 ;
-    this.faceHeight = 30;
-    this.shouldersPosition = new THREE.Vector3(0,this.armHeight*2 + this.handHeight, 0);
-    this.isAttacking = false;
-    this.isFootReplacing = false;
-    this.isBlinking = false;
-    this.footUsed = "left";
-    this.transferPower = {x:0,y:0};
-    
-    
-    // body
-  
-    this.body = new THREE.Group();
-  
-    // torso
-  
-    var torsoGeom = new THREE.CubeGeometry(26,26,this.bodyHeight,1);
-    //var torsoGeom = new THREE.CylinderGeometry(0, 26 ,this.bodyHeight,3,1);
-    this.torso = new THREE.Mesh(torsoGeom,brownMat);
-    this.torso.geometry.applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI/3));
-    this.torso.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,-this.bodyHeight/2,0));
-    
-    // chest
-  
-    var chestGeom = new THREE.CylinderGeometry(6,0, 17, 3);
-    chestGeom.applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI/3));
-    chestGeom.applyMatrix(new THREE.Matrix4().makeScale(1,1,.3));
-    this.chest = new THREE.Mesh(chestGeom, whiteMat);
-    this.chest.position.set(0,-30,1);
-  
-    // head
-    this.head = new THREE.Group();
-  
-    var faceGeom = new THREE.BoxGeometry(30,this.faceHeight,30);
-    this.face = new THREE.Mesh(faceGeom,brownMat);
-    this.face.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,this.faceHeight/2,0));
-    this.face.geometry.applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI/4));
-  
-  
-    // scarf
-    var scarfGeom = new THREE.CylinderGeometry(10,9,9,10, 1);
-    this.scarf1 = new THREE.Mesh(scarfGeom, redMat);
-    this.scarf1.material.side = THREE.DoubleSide;
-    this.scarf1.position.y = -2;
-    this.scarf1.position.z = 0;
-    this.scarf1.rotation.z = .4;
-    this.scarf1.rotation.y = Math.PI/3;
-    
-    this.scarf2 = this.scarf1.clone();
-    this.scarf2.scale.set(.9,.7,.9);
-    this.scarf2.position.y = -17;
-    this.scarf2.rotation.z = -.2;
-  
-    var scarfGeom2 = new THREE.BoxGeometry(50,2,10);
-    this.scarf3 = new THREE.Mesh(scarfGeom2, redMat);
-    this.scarf3.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(25,0,0));
-    this.scarf3.position.set(3,-15,2);
-    this.scarf3.rotation.y = 1.2;
-    this.scarf3.rotation.z = -1;
-  
-    
-    this.head.add(this.scarf1);
-    this.torso.add(this.scarf2);
-    this.torso.add(this.scarf3);
-    this.torso.add(this.chest);
-  
-    
-    var skewMatrixBody = new THREE.Matrix4();
-    skewMatrixBody.set(   1,    0,    0,    0,
-                          0,    1,    0,    0,
-                          0,    0.20,    1,    0,
-                          0,    0,    0,    1  );
-    
-  
-    this.torso.geometry.applyMatrix(skewMatrixBody);
-    this.chest.geometry.applyMatrix(skewMatrixBody);
-    
-  
-    this.body.add(this.torso);
-    this.body.position.y = this.bodyHeight;
-  
-    
-    // Whiskers
-    var whiskerGeom = new THREE.BoxGeometry(16, .2,.2);
-  
-    this.whisker1 = new THREE.Mesh(whiskerGeom, lightBrownMat);
-    this.whisker1.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-7,0,0));
-    this.whisker1.position.set(-6,8,18);
-    this.whisker1.rotation.z = Math.PI/12;
-  
-    this.whisker2 = this.whisker1.clone();
-    this.whisker2.position.y = 6;
-    
-    this.whisker3 = this.whisker1.clone();
-    this.whisker3.position.y = 4;
-  
-    this.whisker4 = this.whisker1.clone();
-    this.whisker4.rotation.z = Math.PI - Math.PI/12;
-    this.whisker4.position.x = -this.whisker1.position.x;
-  
-    this.whisker5 = this.whisker4.clone();
-    this.whisker5.position.y = this.whisker2.position.y;
-  
-    this.whisker6 = this.whisker4.clone();
-    this.whisker6.position.y = this.whisker3.position.y;
-  
-    this.head.add(this.whisker1);
-    this.head.add(this.whisker2);
-    this.head.add(this.whisker3);
-    this.head.add(this.whisker4);
-    this.head.add(this.whisker5);
-    this.head.add(this.whisker6);
-  
-    // ears
-    var rightEarGeom = new THREE.CylinderGeometry(0,8, 8, 3,1);
-    rightEarGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,4,0));
-    var leftEarGeom = rightEarGeom.clone();
-  
-    rightEarGeom.applyMatrix(new THREE.Matrix4().makeRotationY(1));
-    rightEarGeom.applyMatrix(new THREE.Matrix4().makeScale(1,1,.7));
-  
-    leftEarGeom.applyMatrix(new THREE.Matrix4().makeRotationY(-1));
-    leftEarGeom.applyMatrix(new THREE.Matrix4().makeScale(1,1,.7));
-    
-    
-    
-    var skewMatrixRightEar = new THREE.Matrix4().set(   1,    0.0,     0.0,    0,
-                                                        0,    1,        0,    0,
-                                                        -0.5,    0.0,     1,    0,
-                                                        0,    0,        0,    1 );
-  
-    
-    var skewMatrixLeftEar = new THREE.Matrix4().set(    1,    -.5,     0,    0,
-                                                        0,    1,        0,    0,
-                                                        0,    0.0,     1,    0,
-                                                        0,    0,        0,    1 );
-  
-    this.rightEar = new THREE.Mesh(rightEarGeom, brownMat);
-    this.rightEar.position.y = this.faceHeight;
-    this.rightEar.position.x = -14;
-    this.rightEar.position.z = -1.7;  
-    
-    this.leftEar = new THREE.Mesh(leftEarGeom, brownMat);
-    this.leftEar.position.x = -this.rightEar.position.x;
-    this.leftEar.position.z = this.rightEar.position.z;
-    this.leftEar.position.y = this.rightEar.position.y;
-  
-  
-    var rightEarInsideGeom = rightEarGeom.clone();
-    rightEarInsideGeom.applyMatrix(new THREE.Matrix4().makeScale(.5, .5, .5));
-    this.rightEarInside = new THREE.Mesh(rightEarInsideGeom, pinkMat);
-    this.rightEarInside.position.y = .5;
-    this.rightEarInside.position.x = 1;
-    this.rightEarInside.position.z = 2;
-  
-    this.rightEar.add(this.rightEarInside);
-  
-    var LeftEarInsideGeom = leftEarGeom.clone();
-    LeftEarInsideGeom.applyMatrix(new THREE.Matrix4().makeScale(.5, .5, .5));
-    this.leftEarInside = new THREE.Mesh(LeftEarInsideGeom, pinkMat);
-    this.leftEarInside.position.y = .5;
-    this.leftEarInside.position.x = -1;
-    this.leftEarInside.position.z = 2;
-  
-    this.leftEar.add(this.leftEarInside);
-  
-    // Eyes
-    var eyeGeom = new THREE.BoxGeometry(12,12, 1);
-    this.rightEye = new THREE.Mesh(eyeGeom, whiteMat);
-    this.rightEye.position.set(-12,20, 10);
-    this.rightEye.rotation.y = -Math.PI/4;
-  
-    this.leftEye = this.rightEye.clone();
-    this.leftEye.position.x = -this.rightEye.position.x;
-    this.leftEye.rotation.y = Math.PI/4;
-  
-    // Iris
-    var irisGeom = new THREE.BoxGeometry(4,4,2);
-    this.rightIris = new THREE.Mesh(irisGeom, brownMat);
-    this.rightIris.position.x = 2;
-    this.rightIris.position.y = -2;
-    this.rightIris.position.z = .5;
-  
-    this.leftIris = this.rightIris.clone();
-    this.leftIris.position.x = -this.rightIris.position.x;
-  
-    this.rightEye.add(this.rightIris);
-    this.leftEye.add(this.leftIris);
-  
-    // nose
-    var noseGeom = new THREE.CylinderGeometry(3,0,4,4)
-    noseGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,-4));
-  
-    var skewMatrixNose = new THREE.Matrix4().set(   1,    0,     0,    0,
-                                                    0,    1,     0,    0,
-                                                    0,    -.7,     1,    1.4,
-                                                    0,    0,     0,    1 );
-  
-    noseGeom.applyMatrix(skewMatrixNose);
-    this.nose = new THREE.Mesh(noseGeom, pinkMat);
-    this.nose.position.z = 24;
-    this.nose.position.y =14.1;
-  
-  
-    // cheeks
-    var cheeksGeom = new THREE.CylinderGeometry(8,8,14,4);
-    cheeksGeom.applyMatrix(new THREE.Matrix4().makeScale(1,1,1.4));
-    this.cheeks = new THREE.Mesh(cheeksGeom, brownMat);
-    this.cheeks.position.set(0, 7, 13 );
-  
-    // mouth
-    var mouthGeom = cheeksGeom.clone();//new THREE.BoxGeometry(4,2,4);
-    mouthGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,-4,0));
-    mouthGeom.applyMatrix(new THREE.Matrix4().makeScale(.5,.2,.5));
-    this.mouth = new THREE.Mesh(mouthGeom, brownMat);
-    
-  
-    // tongue
-    var tongueGeom = mouthGeom.clone();
-    tongueGeom.applyMatrix(new THREE.Matrix4().makeScale(.8,1,.8));
-    this.tongue = new THREE.Mesh(tongueGeom, pinkMat);
-    this.tongue.position.set(0, .5, 0); 
-    this.mouth.add(this.tongue);
-  
-    this.mouth.rotation.x = Math.PI/4;
-    this.mouth.position.set(0, 1.5, 18); 
-  
-    
-    this.head.add(this.face);
-    this.head.add(this.rightEar);
-    this.head.add(this.leftEar);
-    this.head.add(this.rightEye);
-    this.head.add(this.leftEye);
-    this.head.add(this.nose);
-    this.head.add(this.cheeks);
-    this.head.add(this.mouth);
-    
-    this.head.position.y = this.bodyHeight-15;
-    this.head.position.z = -5;
-    //this.head.scale.set(0.4,0.4,0.4);
-  
-  
-    // shoulders
-    this.rightShoulder = new THREE.Group();
-    this.leftShoulder = new THREE.Group();
-  
-    this.rightShoulder.position.set(-6, this.shouldersPosition.y, 0);
-    this.leftShoulder.position.set(6, this.shouldersPosition.y, 0);
-  
-  
-    // arms
-    var armGeom = new THREE.CylinderGeometry(4, 6, this.armHeight+5,4);
-    armGeom.applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI/4));
-    armGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0, -this.armHeight/2, 0));
-  
-    this.rightArm = new THREE.Mesh(armGeom,brownMat);
-    this.rightShoulder.add(this.rightArm);
-  
-    this.leftArm = this.rightArm.clone();
-    this.leftShoulder.add(this.leftArm);
-    
-    // forearms
-  
-    var foreArmGeom = new THREE.CylinderGeometry(6, 7, this.armHeight,4);
-    foreArmGeom.applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI/4));
-    foreArmGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0, -this.armHeight/2, 0));
-  
-  
-    this.rightForeArm = new THREE.Mesh(foreArmGeom,brownMat);
-    this.rightForeArm.position.y = -this.armHeight;
-    this.rightArm.add(this.rightForeArm);
-  
-    this.leftForeArm = this.rightForeArm.clone();
-    this.leftArm.add(this.leftForeArm);
-  
-    // foot = front foot
-    var footGeom = new THREE.BoxGeometry(10,10,10);
-    this.rightFoot = new THREE.Mesh(footGeom, whiteMat);
-    this.rightFoot.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,0));
-    this.rightFoot.position.set(0,-this.armHeight-5,0);
-    this.rightForeArm.add(this.rightFoot);
-    this.leftFoot = this.rightFoot.clone();
-    this.leftForeArm.add(this.leftFoot);
-  
-    //footPad
-    var footPadGeom = new THREE.BoxGeometry(8,2,8);
-    this.rightFootPad = new THREE.Mesh(footPadGeom, pinkMat);
-    this.rightFootPad.position.y = -4.5;
-    this.rightFoot.add(this.rightFootPad)
-  
-    this.leftFootPad = this.rightFootPad.clone();
-    this.leftFoot.add(this.leftFootPad)
-  
-    // knees
-    var kneeGeom = new THREE.BoxGeometry(8,30,30);
-    kneeGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,15,0));
-    
-    this.rightKnee = new THREE.Mesh(kneeGeom, brownMat);
-    this.rightKnee.rotation.y = -Math.PI/6;
-    this.rightKnee.position.x = -14;
-    this.rightKnee.position.z = -12;
-  
-    this.leftKnee = this.rightKnee.clone();
-    this.leftKnee.rotation.y = -this.rightKnee.rotation.y;
-    this.leftKnee.position.x = -this.rightKnee.position.x;
-  
-    // legs = back legs
-    var legGeom = new THREE.BoxGeometry(12,6,4);
-    this.rightLeg = new THREE.Mesh(legGeom, whiteMat);
-    this.rightLeg.position.set(0,3,17);
-    this.rightKnee.add(this.rightLeg);
-  
-    this.leftLeg = this.rightLeg.clone();
-    this.leftKnee.add(this.leftLeg);
-  
-    // tail
-  
-    this.tail = new THREE.Group();
-    this.tail.position.z = -36;
-    this.tail.position.y = 5;
-  
-    var p = this.tail;
-    var currentY = 0;
-    var curentRot = 0;
-    var segHeight = 8;
-    var recScale = 1.15;
-  
-    this.tailNSegs = 8 ;
-    this.tailSegements = [];
-  
-    var tailSegGeom = new THREE.CylinderGeometry(5, 4, segHeight, 4);
-    tailSegGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,segHeight/2,0));
-    
-    
-    for (var i = 0; i<this.tailNSegs ; i++){
-      var mat = (i<this.tailNSegs-1)? brownMat : whiteMat;
-      var tg = tailSegGeom.clone();
-      var s = Math.pow(recScale, i);
-      tg.applyMatrix(new THREE.Matrix4().makeScale(s, s, s));
-      var t = new THREE.Mesh(tg,mat);
-      currentRot = (i==0)? - Math.PI/2 : currentRot/(i*i*i);
-      t.position.y = currentY;
-      t.rotation.x = currentRot;
-      p.add(t);
-      p = t;
-      currentY = (segHeight-2)*s; 
-      currentRot = 
-      this.tailSegements.push(t);
-    }
-  
-    // stripes Head
-  
-    var stripeGeom = new THREE.CylinderGeometry(2,0, 15,4);
-    var stripe0 = new THREE.Mesh(stripeGeom, lightBrownMat);
-    stripe0.rotation.y = -Math.PI/4;
-    stripe0.position.x = -1.5;
-    stripe0.position.y = 22;
-    stripe0.position.z = 18.5;
-  
-    var stripe1 = stripe0.clone();
-    stripe1.position.x = -stripe0.position.x;
-    stripe1.rotation.y = -stripe0.rotation.y;
-  
-    
-  
-    var stripeGeom2 = new THREE.BoxGeometry(8,2,10);
-    var stripe2 = new THREE.Mesh(stripeGeom2, lightBrownMat);
-    stripe2.rotation.y = Math.PI/4;
-    stripe2.position.x = 15.6;
-    stripe2.position.y = 8;
-    stripe2.position.z = -1;
-  
-    var stripe3 = stripe2.clone();
-    stripe3.position.y = 4;
-  
-    var stripe4 = stripe2.clone();
-    stripe4.rotation.y = -Math.PI/4;
-    stripe4.position.x = -stripe2.position.x;
-  
-    var stripe5 = stripe4.clone();
-    stripe5.position.y = stripe3.position.y;
-  
-  
-    var stripeGeom3 = new THREE.BoxGeometry(1.6,1,10);
-    var stripe6 = new THREE.Mesh(stripeGeom3, lightBrownMat);
-    stripe6.position.x = -2.1;
-    stripe6.position.z = 15;
-    stripe6.position.y = 30;
-  
-    var stripe7 = stripe6.clone();
-    stripe7.position.x = -stripe6.position.x;
-  
-  
-    this.head.add(stripe0);
-    this.head.add(stripe1);
-    this.head.add(stripe2);
-    this.head.add(stripe3);
-    this.head.add(stripe4);
-    this.head.add(stripe5);
-    this.head.add(stripe6);
-    this.head.add(stripe7);
-  
-    
-    // stripes Knee
-  
-    var stripe9 = stripe2.clone();
-    //stripe9.scale.y = 2;
-    stripe9.rotation.y = 0;
-    stripe9.position.y = 16;
-    stripe9.position.x = -1;
-    stripe9.position.z = 11;
-  
-    var stripe10 = stripe9.clone();
-    stripe10.position.y = 22;
-    stripe10.position.x = 1;
-  
-    var stripe11 = stripe9.clone();
-    stripe11.position.y = 28;
-  
-    this.rightKnee.add(stripe9);
-    this.rightKnee.add(stripe10);
-    this.rightKnee.add(stripe11);
-  
-    var stripe12 = stripe9.clone();
-    stripe12.position.x = -1;
-  
-    var stripe13 = stripe12.clone();
-    stripe13.position.y = stripe10.position.y;
-    stripe13.position.x = 1;
-  
-    var stripe14 = stripe12.clone();
-    stripe14.position.y = stripe11.position.y;
-  
-    this.leftKnee.add(stripe12);
-    this.leftKnee.add(stripe13);
-    this.leftKnee.add(stripe14);
-  
-    this.threeGroup.add(this.body);
-    this.threeGroup.add(this.head);
-    this.rightShoulder.rotation.x = Math.PI;
-    this.leftShoulder.rotation.x = Math.PI;
-    this.threeGroup.add(this.rightShoulder);
-    this.threeGroup.add(this.leftShoulder);
-  
-    this.threeGroup.add(this.rightKnee);
-    this.threeGroup.add(this.leftKnee);
-    this.threeGroup.add(this.tail);
-  
-    
-    this.threeGroup.traverse( function ( object ) {
-      if ( object instanceof THREE.Mesh ) {
-        object.castShadow = true;
-        object.receiveShadow = true;
-      }
-    } );
-} */
+Monster.prototype.sit = function(){
+  var sp = 1.2;
+  var ease = Power4.easeOut;
+  var _this = this;
+  TweenMax.to(this.torso.rotation, sp, {x:-1.3, ease:ease});
+  TweenMax.to(this.torso.position, sp, {y:-5, ease:ease, onComplete:function(){
+    _this.nod();
+    gameStatus = "readyToReplay";
+  }});
+  
+  TweenMax.to(this.head.rotation, sp, {x:Math.PI/3, y :-Math.PI/3, ease:ease});
+  TweenMax.to(this.tail.rotation, sp, {x:2, y:Math.PI/4, ease:ease});
+  TweenMax.to(this.pawBL.rotation, sp, {x:-.1, ease:ease});
+  TweenMax.to(this.pawBR.rotation, sp, {x:-.1, ease:ease});
+  TweenMax.to(this.pawFL.rotation, sp, {x:1, ease:ease});
+  TweenMax.to(this.pawFR.rotation, sp, {x:1, ease:ease});
+  TweenMax.to(this.mouth.rotation, sp, {x:.3, ease:ease});
+  TweenMax.to(this.eyeL.scale, sp, {y:1, ease:ease});
+  TweenMax.to(this.eyeR.scale, sp, {y:1, ease:ease});
+  
+  //TweenMax.to(this.body.rotation, sp, {y:Math.PI/4});
+  
+}
 
 function createCat() {
   /* hero = new Dragon();
@@ -1261,7 +795,7 @@ function createHero() {
     scene.add(hero.threeGroup); */
     hero = new Monster();
     hero.mesh.scale.set(0.4,0.4,0.4);
-    hero.mesh.position.z = 50;
+    hero.mesh.position.z = 20;
     scene.add(hero.mesh);
 }
 
@@ -1376,7 +910,7 @@ Ball = function(){
   this.body.add(this.wire8);
   this.body.add(this.wire9);
 
-  this.threeGroup.add(this.string);
+  //this.threeGroup.add(this.string);
   this.threeGroup.add(this.body);
 
   this.threeGroup.traverse( function ( object ) {
@@ -1392,7 +926,35 @@ Ball.prototype.run = function() {
   this.runningCycle += delta * s * .7;
   this.runningCycle = this.runningCycle % (Math.PI*2);
   var t = this.runningCycle;
-  this.body.rotateZ(Math.sin(t) * Math.PI/4);
+  //this.body.rotateZ(Math.sin(t) * Math.PI/4);
+  this.body.rotation.z += .1;
+}
+
+Ball.prototype.jump = function(){
+  if (this.status == "jumping") return;
+  this.status = "jumping";
+  var _this = this;
+  var totalSpeed = 10 / speed;
+  var jumpHeight = 45;
+  
+  //TweenMax.to(this.earL.rotation, totalSpeed, {x:"+=.3", ease:Back.easeOut});
+  //TweenMax.to(this.earR.rotation, totalSpeed, {x:"-=.3", ease:Back.easeOut});
+  
+  //TweenMax.to(this.pawFL.rotation, totalSpeed, {x:"+=.7", ease:Back.easeOut});
+  //TweenMax.to(this.pawFR.rotation, totalSpeed, {x:"-=.7", ease:Back.easeOut});
+  //TweenMax.to(this.pawBL.rotation, totalSpeed, {x:"+=.7", ease:Back.easeOut});
+  //TweenMax.to(this.pawBR.rotation, totalSpeed, {x:"-=.7", ease:Back.easeOut});
+  
+  //TweenMax.to(this.tail.rotation, totalSpeed, {x:"+=1", ease:Back.easeOut});
+  
+  //TweenMax.to(this.mouth.rotation, totalSpeed, {x:.5, ease:Back.easeOut});
+  
+  TweenMax.to(this.threeGroup.position, totalSpeed/2, {y:jumpHeight, ease:Power2.easeOut});
+  TweenMax.to(this.threeGroup.position, totalSpeed/2, {y:6, ease:Power4.easeIn, delay:totalSpeed/2, onComplete: function(){
+    //t = 0;
+    _this.status="running";
+  }});
+  
 }
 
 WoolVert = function(){
@@ -1442,87 +1004,132 @@ Constraint = function(p1, p2) {
   this.length = woolSegLength;
 };
 
-Ball.prototype.update = function(posX, posY, posZ){
-		
-	var i = accuracy;
-	
-	while (i--) {
-		
-		var nodesCount = woolNodes;
-		
-		while (nodesCount--) {
-		
-			var v = this.verts[nodesCount];
-			
-			if (v.isRootNode) {
-			    v.x = posX;
-			    v.y = posY;
-			    v.z = posZ;
-			}
-		
-			else {
-		
-				var constraintsCount = v.constraints.length;
-		  		
-		  		while (constraintsCount--) {
-		  			
-		  			var c = v.constraints[constraintsCount];
+Wool = function() {
+  this.angle = 0;
+  var redMat = new THREE.MeshLambertMaterial ({
+    color: 0x630d15, 
+    shading:THREE.FlatShading
+});
 
-		  			var diff_x = c.p1.x - c.p2.x,
-					    diff_y = c.p1.y - c.p2.y,
-					    dist = Math.sqrt(diff_x * diff_x + diff_y * diff_y),
-					    diff = (c.length - dist) / dist;
+this.threeGroup = new THREE.Group();
+this.ballRay = 8;
 
-				  	var px = diff_x * diff * .5;
-				  	var py = diff_y * diff * .5;
+// body
+var bodyGeom = new THREE.SphereGeometry(this.ballRay, 5,4);
+this.body = new THREE.Mesh(bodyGeom, redMat);
+this.body.position.y = -woolSegLength*woolNodes;
 
-				  	c.p1.x += px;
-				  	c.p1.y += py;
-				  	c.p2.x -= px;
-				  	c.p2.y -= py;
-				  	c.p1.z = c.p2.z = posZ;
-		  		}
+var wireGeom = new THREE.TorusGeometry( this.ballRay, .5, 3, 10, Math.PI*2 );
+this.wire1 = new THREE.Mesh(wireGeom, redMat);
+this.wire1.position.x = 1;
+this.wire1.rotation.x = -Math.PI/4;
 
-		  		if (nodesCount == woolNodes-1){
-		  			this.body.position.x = this.verts[nodesCount].x;
-					this.body.position.y = this.verts[nodesCount].y;
-					this.body.position.z = this.verts[nodesCount].z;
+this.wire2 = this.wire1.clone();
+this.wire2.position.y = 13;
+this.wire2.position.x = -1;
+this.wire1.rotation.x = -Math.PI/4 + .5;
+this.wire1.rotation.y = -Math.PI/6;
 
-					this.body.rotation.z += (v.y <= this.ballRay)? (v.oldx-v.x)/10 : Math.min(Math.max( diff_x/2, -.1 ), .1);
-		  		}
-		  	}
-		  	
-		  	//if (v.y < this.ballRay) {
-		  	//	v.y = this.ballRay;
-		  	//}
-		}
-	}
+this.wire3 = this.wire1.clone();
+this.wire3.rotation.x = -Math.PI/2 + .3;
 
-	nodesCount = woolNodes;
-	while (nodesCount--) this.verts[nodesCount].update();
+this.wire4 = this.wire1.clone();
+this.wire4.position.x = -1;
+this.wire4.rotation.x = -Math.PI/2 + .7;
 
-	this.string.geometry.verticesNeedUpdate = true;
+this.wire5 = this.wire1.clone();
+this.wire5.position.x = 2;
+this.wire5.rotation.x = -Math.PI/2 + 1;
 
-	
+this.wire6 = this.wire1.clone();
+this.wire6.position.x = 2;
+this.wire6.position.z = 1;
+this.wire6.rotation.x = 1;
+
+this.wire7 = this.wire1.clone();
+this.wire7.position.x = 1.5;
+this.wire7.rotation.x = 1.1;
+
+this.wire8 = this.wire1.clone();
+this.wire8.position.x = 1;
+this.wire8.rotation.x = 1.3;
+
+this.wire9 = this.wire1.clone();
+this.wire9.scale.set(1.2,1.1,1.1);
+this.wire9.rotation.z = Math.PI/2;
+this.wire9.rotation.y = Math.PI/2;
+this.wire9.position.y = 1;
+
+this.body.add(this.wire1);
+this.body.add(this.wire2);
+this.body.add(this.wire3);
+this.body.add(this.wire4);
+this.body.add(this.wire5);
+this.body.add(this.wire6);
+this.body.add(this.wire7);
+this.body.add(this.wire8);
+this.body.add(this.wire9);
+
+//this.threeGroup.add(this.body);
+this.threeGroup.add(this.wire1);
+this.threeGroup.add(this.wire2);
+this.threeGroup.add(this.wire3);
+this.threeGroup.add(this.wire4);
+this.threeGroup.add(this.wire5);
+this.threeGroup.add(this.wire6);
+this.threeGroup.add(this.wire7);
+this.threeGroup.add(this.wire8);
+this.threeGroup.add(this.wire9);
+
+this.threeGroup.traverse( function ( object ) {
+if ( object instanceof THREE.Mesh ) {
+  object.castShadow = true;
+  object.receiveShadow = true;
+}});
 }
 
-Ball.prototype.receivePower = function(tp){
-	this.verts[woolNodes-1].add_force(tp.x, tp.y);
+function createWool(){
+  wool = new Wool();
+  scene.add(wool.threeGroup);
+  wool.threeGroup.scale.set(0.4,0.4,0.4)
+  wool.threeGroup.position.set(40,12,50);
 }
 
-function getBallPos(){
-  var vector = new THREE.Vector3();
+BonusParticles = function(){
+  this.mesh = new THREE.Group();
+  var bigParticleGeom = new THREE.CubeGeometry(10,10,10,1);
+  var smallParticleGeom = new THREE.CubeGeometry(5,5,5,1);
+  this.parts = [];
+  for (var i=0; i<10; i++){
+    var partPink = new THREE.Mesh(bigParticleGeom, pinkMat);
+    var partGreen = new THREE.Mesh(smallParticleGeom, greenMat);
+    partGreen.scale.set(.5,.5,.5);
+    this.parts.push(partPink);
+    this.parts.push(partGreen);
+    this.mesh.add(partPink);
+    this.mesh.add(partGreen);
+  }
+}
 
-  vector.set(
-      ( mousePos.x / window.innerWidth ) * 2 - 1, 
-      - ( mousePos.y / window.innerHeight ) * 2 + 1,
-      0.1 );
+BonusParticles.prototype.explose = function(){
+  var _this = this;
+  var explosionSpeed = .5;
+  for(var i=0; i<this.parts.length; i++){
+    var tx = -50 + Math.random()*100;
+    var ty = -50 + Math.random()*100;
+    var tz = -50 + Math.random()*100;
+    var p = this.parts[i];
+    p.position.set(0,0,0);
+    p.scale.set(1,1,1);
+    p.visible = true;
+    var s = explosionSpeed + Math.random()*.5;
+    TweenMax.to(p.position, s,{x:tx, y:ty, z:tz, ease:Power4.easeOut});
+    TweenMax.to(p.scale, s,{x:.01, y:.01, z:.01, ease:Power4.easeOut, onComplete:removeParticle, onCompleteParams:[p]});
+  }
+}
 
-  vector.unproject( camera );
-  var dir = vector.sub( camera.position ).normalize();
-  var distance = (ballWallDepth - camera.position.z) / dir.z;
-  var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-  return pos;
+function removeParticle(p){
+  p.visible = false;
 }
 
 function updateFloorRotation(){
@@ -1544,9 +1151,10 @@ function loop(){
     
     if (gameStatus == "play"){
       
-      //if (hero.status == "running"){
-        //hero.run();
-      //}
+      if (ball.status == "running"){
+        ball.run();
+      }
+
       //ball.run();
       updateDistance();
       updateCatPosition();
@@ -1556,8 +1164,8 @@ function loop(){
     } 
     render();
     //var ballPos = getBallPos();
-    var ballPos = {x: 0, y:0, z: 75};
-    ball.update(ballPos.x,ballPos.y , ballPos.z + 75);
+    //var ballPos = {x: 0, y:0, z: 75};
+    //ball.update(ballPos.x,ballPos.y , ballPos.z + 75);
     //ball.receivePower(hero.transferPower);
     //hero.interactWithBall(ball.body.position);  
     requestAnimationFrame(loop);
@@ -1577,6 +1185,35 @@ function init() {
     createFirs();
     createCat();
     createBall();
+    createWool();
     loop();
     
+}
+
+function resetGame(){
+  scene.add(hero.mesh);
+  hero.mesh.rotation.y = Math.PI/2;
+  hero.mesh.position.y = 0;
+  hero.mesh.position.z = 0;
+  hero.mesh.position.x = 0;
+
+  monsterPos = .56;
+  monsterPosTarget = .65;
+  speed = initSpeed;
+  level = 0;
+  distance = 0;
+  carrot.mesh.visible = true;
+  obstacle.mesh.visible = true;
+  gameStatus = "play";
+  hero.status = "running";
+  hero.nod();
+  audio.play();
+  updateLevel();
+  levelInterval = setInterval(updateLevel, levelUpdateFreq);
+}
+
+function initUI(){
+  fieldDistance = document.getElementById("distValue");
+  fieldGameOver = document.getElementById("gameoverInstructions");
+  
 }
