@@ -13,7 +13,7 @@
   text-transform: uppercase;
   font-size: 120px;
   text-align: center;
-  color: #ffc5a2;
+  color: #68c3c0;
   opacity: 0;
   left: 50%;
   top: 50%;
@@ -51,7 +51,7 @@
   position: relative;
   font-family: 'Voltaire', sans-serif;
   text-transform: uppercase;
-  color: #ffa873;
+  color: #68c3c0;
   font-size: 12px;
   letter-spacing: 2px;
   text-align: center;
@@ -61,9 +61,9 @@
 #distValue {
   position: relative;
   text-transform: uppercase;
-  color: #dc5f45;
+  color: #68c3c0;
   font-size: 40px;
-  font-family: 'Voltaire';
+  font-family: 'Playfair Display';
   text-align: center;
 }
 
@@ -90,7 +90,7 @@
 }
 
 #credits a:hover {
-  color: #dc5f45;
+  color: #68c3c0;
 }
 
 #instructions {

@@ -31,7 +31,7 @@ var mousePos = { x: 0, y: 0 };
 
 // Materials
 var blackMat = new THREE.MeshPhongMaterial({
-    color: 0x100707,
+    color: 0x59332e,
     shading:THREE.FlatShading,
   });
   
@@ -313,6 +313,7 @@ function makeCube(mat, w, h, d, posX, posY, posZ, rotX, rotY, rotZ) {
 Monster = function(){
   
   this.runningCycle = 0;
+  this.isBlinking = false;
   
   this.mesh = new THREE.Group();
   this.body = new THREE.Group();
@@ -723,6 +724,18 @@ Monster.prototype.run = function(){
   this.tail.rotation.x = .2 + Math.sin(t-Math.PI/2);
 
   //this.eyeR.scale.y = .5 + Math.sin(t+Math.PI)*.5;
+  if (!this.isBlinking && Math.random()>.99){
+    this.isBlinking = true;
+    this.blink();
+  }
+}
+
+Monster.prototype.blink = function(){
+  _this = this;
+  TweenMax.to (this.rightEye.scale, .07, {y:0, yoyo:true, repeat:1});
+  TweenMax.to (this.leftEye.scale, .07, {y:0, yoyo:true, repeat:1, onComplete:function(){
+    _this.isBlinking = false;
+  }});
 }
 
 Monster.prototype.sit = function(){
@@ -731,19 +744,21 @@ Monster.prototype.sit = function(){
   var _this = this;
   TweenMax.to(this.torso.rotation, sp, {x:-1.3, ease:ease});
   TweenMax.to(this.torso.position, sp, {y:-5, ease:ease, onComplete:function(){
-    _this.nod();
+    //_this.nod();
     gameStatus = "readyToReplay";
   }});
   
   TweenMax.to(this.head.rotation, sp, {x:Math.PI/3, y :-Math.PI/3, ease:ease});
+  console.log(this.head.position);
+  TweenMax.to(this.head.position, sp, {x:0, y:0 , z:18, ease:ease});
   TweenMax.to(this.tail.rotation, sp, {x:2, y:Math.PI/4, ease:ease});
   TweenMax.to(this.pawBL.rotation, sp, {x:-.1, ease:ease});
   TweenMax.to(this.pawBR.rotation, sp, {x:-.1, ease:ease});
   TweenMax.to(this.pawFL.rotation, sp, {x:1, ease:ease});
   TweenMax.to(this.pawFR.rotation, sp, {x:1, ease:ease});
   TweenMax.to(this.mouth.rotation, sp, {x:.3, ease:ease});
-  TweenMax.to(this.eyeL.scale, sp, {y:1, ease:ease});
-  TweenMax.to(this.eyeR.scale, sp, {y:1, ease:ease});
+  //TweenMax.to(this.lefteye.scale, sp, {y:1, ease:ease});
+  //TweenMax.to(this.righteye.scale, sp, {y:1, ease:ease});
   
   //TweenMax.to(this.body.rotation, sp, {y:Math.PI/4});
   
@@ -763,14 +778,24 @@ function createCat() {
   hero.threeGroup.scale.set(0.2,0.2,0.2);
   scene.add(hero.threeGroup); */
   cat = new Monster();
-  cat.mesh.scale.set(0.4,0.4,0.4);
-  cat.mesh.position.z = 50;
+  cat.mesh.scale.set(0.8,0.8,0.8);
+  cat.mesh.position.z = 20;
   scene.add(cat.mesh);
   updateCatPosition();
 }
 
 function updateCatPosition() {
   cat.run();
+  monsterPosTarget -= delta*monsterAcceleration;
+  monsterPos += (monsterPosTarget-monsterPos) *delta;
+  if (monsterPos < .56){
+    gameOver();
+  }
+  
+  var angle = Math.PI*monsterPos;
+  cat.mesh.position.y = - floorRadius + Math.sin(angle)*(floorRadius + 12);
+  cat.mesh.position.x = Math.cos(angle)*(floorRadius+15);
+  cat.mesh.rotation.z = -Math.PI/2 + angle;
 }
 
 function createHero() {
@@ -794,8 +819,9 @@ function createHero() {
 
 function createBall() {
   ball = new Ball();
-  ball.threeGroup.scale.set(0.4,0.4,0.4);
-  ball.threeGroup.position.set(10,6,50);
+  ball.threeGroup.rotation.y = Math.PI/2;
+  ball.threeGroup.scale.set(0.8,0.8,0.8);
+  //ball.threeGroup.position.set(0,0,20);
   scene.add(ball.threeGroup);
 }
   
@@ -828,7 +854,7 @@ Ball = function(){
   this.verts = [];
 
   // string
-  var stringGeom = new THREE.Geometry();
+  /* var stringGeom = new THREE.Geometry();
 
   for (var i=0; i< woolNodes; i++	){
       var v = new THREE.Vector3(0, -i*woolSegLength, 0);
@@ -845,12 +871,12 @@ Ball = function(){
       this.verts.push(woolV);
       
   }
-  this.string = new THREE.Line(stringGeom, stringMat);
+  this.string = new THREE.Line(stringGeom, stringMat); */
 
   // body
   var bodyGeom = new THREE.SphereGeometry(this.ballRay, 5,4);
   this.body = new THREE.Mesh(bodyGeom, redMat);
-  this.body.position.y = -woolSegLength*woolNodes;
+  //this.body.position.y = -woolSegLength*woolNodes;
 
   var wireGeom = new THREE.TorusGeometry( this.ballRay, .5, 3, 10, Math.PI*2 );
   this.wire1 = new THREE.Mesh(wireGeom, redMat);
@@ -911,6 +937,7 @@ Ball = function(){
     object.castShadow = true;
     object.receiveShadow = true;
   }});
+  //this.threeGroup.position.set(0,0,20);
 }
 
 Ball.prototype.run = function() {
@@ -1010,7 +1037,7 @@ this.ballRay = 8;
 // body
 var bodyGeom = new THREE.SphereGeometry(this.ballRay, 5,4);
 this.body = new THREE.Mesh(bodyGeom, redMat);
-this.body.position.y = -woolSegLength*woolNodes;
+//this.body.position.y = -woolSegLength*woolNodes;
 
 var wireGeom = new THREE.TorusGeometry( this.ballRay, .5, 3, 10, Math.PI*2 );
 this.wire1 = new THREE.Mesh(wireGeom, redMat);
@@ -1085,7 +1112,7 @@ function createWool(){
   wool = new Wool();
   scene.add(wool.threeGroup);
   wool.threeGroup.scale.set(0.4,0.4,0.4)
-  wool.threeGroup.position.set(40,12,50);
+  //wool.threeGroup.position.set(40,12,50);
 }
 
 function updateWoolPosition(){
@@ -1097,13 +1124,17 @@ function updateWoolPosition(){
 }
 
 BonusParticles = function(){
+  var redMat = new THREE.MeshLambertMaterial ({
+    color: 0x630d15, 
+    shading:THREE.FlatShading
+});
   this.mesh = new THREE.Group();
   var bigParticleGeom = new THREE.CubeGeometry(10,10,10,1);
   var smallParticleGeom = new THREE.CubeGeometry(5,5,5,1);
   this.parts = [];
   for (var i=0; i<10; i++){
-    var partPink = new THREE.Mesh(bigParticleGeom, pinkMat);
-    var partGreen = new THREE.Mesh(smallParticleGeom, greenMat);
+    var partPink = new THREE.Mesh(bigParticleGeom, redMat);
+    var partGreen = new THREE.Mesh(smallParticleGeom, redMat);
     partGreen.scale.set(.5,.5,.5);
     this.parts.push(partPink);
     this.parts.push(partGreen);
@@ -1142,6 +1173,10 @@ function createBonusParticles(){
 
 
 Hedgehog = function() {
+  var blackMat = new THREE.MeshLambertMaterial ({
+    color: 0x111111, 
+    shading:THREE.FlatShading
+  });
   this.angle = 0;
   this.status="ready";
   this.mesh = new THREE.Group();
@@ -1260,21 +1295,44 @@ Hedgehog.prototype.nod = function(){
 function createObstacle(){
   obstacle = new Hedgehog();
   obstacle.body.rotation.y = -Math.PI/2;
-  obstacle.mesh.scale.set(1.1,1.1,1.1);
+  obstacle.mesh.scale.set(1.5,1.5,1.5);
   obstacle.mesh.position.y = floorRadius+4;
   obstacle.nod();
   scene.add(obstacle.mesh);
 }
 
+function createPuddle() {
+  /* floorShadow = new THREE.Mesh(new THREE.SphereGeometry(floorRadius, 50, 50), new THREE.MeshPhongMaterial({
+    color: 0x7abf8e,
+    specular: 0x000000,
+    shininess: 1,
+    transparent: true,
+    opacity: .5
+  }));
+  floorShadow.receiveShadow = true; */
+
+  
+  puddleWater = new THREE.Mesh(new THREE.SphereGeometry(floorRadius-.5, 50, 50, 0 , Math.PI*0.5,0,Math.PI*0.5), new THREE.MeshBasicMaterial({
+      color: 0x68c3c0
+  }));
+  puddleWater.receiveShadow = false;
+
+  puddle = new THREE.Group();
+  puddle.position.y = -floorRadius;
+
+  puddle.add(puddleWater);
+  scene.add(puddle); 
+}
+
 function gameOver(){
   fieldGameOver.className = "show";
   gameStatus = "gameOver";
-  monster.sit();
+  cat.sit();
   //hero.hang();
   //monster.heroHolder.add(hero.mesh);
   TweenMax.to(this, 1, {speed:0});
   TweenMax.to(camera.position, 3, {z:cameraPosGameOver, y: 60, x:-30});
-  wool.mesh.visible = false;
+  wool.threeGroup.visible = false;
   obstacle.mesh.visible = false;
   clearInterval(levelInterval);
 }
@@ -1285,39 +1343,39 @@ function replay(){
   
   fieldGameOver.className = "";
   
-  TweenMax.killTweensOf(monster.pawFL.position);
-  TweenMax.killTweensOf(monster.pawFR.position);
-  TweenMax.killTweensOf(monster.pawBL.position);
-  TweenMax.killTweensOf(monster.pawBR.position);
+  TweenMax.killTweensOf(cat.pawFL.position);
+  TweenMax.killTweensOf(cat.pawFR.position);
+  TweenMax.killTweensOf(cat.pawBL.position);
+  TweenMax.killTweensOf(cat.pawBR.position);
   
-  TweenMax.killTweensOf(monster.pawFL.rotation);
-  TweenMax.killTweensOf(monster.pawFR.rotation);
-  TweenMax.killTweensOf(monster.pawBL.rotation);
-  TweenMax.killTweensOf(monster.pawBR.rotation);
+  TweenMax.killTweensOf(cat.pawFL.rotation);
+  TweenMax.killTweensOf(cat.pawFR.rotation);
+  TweenMax.killTweensOf(cat.pawBL.rotation);
+  TweenMax.killTweensOf(cat.pawBR.rotation);
   
-  TweenMax.killTweensOf(monster.tail.rotation);
-  TweenMax.killTweensOf(monster.head.rotation);
-  TweenMax.killTweensOf(monster.eyeL.scale);
-  TweenMax.killTweensOf(monster.eyeR.scale);
+  TweenMax.killTweensOf(cat.tail.rotation);
+  TweenMax.killTweensOf(cat.head.rotation);
+  //TweenMax.killTweensOf(cat.eyeL.scale);
+  //TweenMax.killTweensOf(cat.eyeR.scale);
   
   //TweenMax.killTweensOf(hero.head.rotation);
   
-  monster.tail.rotation.y = 0;
+  cat.tail.rotation.y = 0;
     
   TweenMax.to(camera.position, 3, {z:cameraPosGame, x:0, y:30, ease:Power4.easeInOut});
-  TweenMax.to(monster.torso.rotation,2, {x:0, ease:Power4.easeInOut});
-  TweenMax.to(monster.torso.position,2, {y:0, ease:Power4.easeInOut});
-  TweenMax.to(monster.pawFL.rotation,2, {x:0, ease:Power4.easeInOut});
-  TweenMax.to(monster.pawFR.rotation,2, {x:0, ease:Power4.easeInOut});
-  TweenMax.to(monster.mouth.rotation,2, {x:.5, ease:Power4.easeInOut});
+  TweenMax.to(cat.torso.rotation,2, {x:0, ease:Power4.easeInOut});
+  TweenMax.to(cat.torso.position,2, {y:0, ease:Power4.easeInOut});
+  TweenMax.to(cat.pawFL.rotation,2, {x:0, ease:Power4.easeInOut});
+  TweenMax.to(cat.pawFR.rotation,2, {x:0, ease:Power4.easeInOut});
+  TweenMax.to(cat.mouth.rotation,2, {x:.5, ease:Power4.easeInOut});
   
+  TweenMax.to(cat.head.position, 2, {x:0, y:5, z:35, ease:Power4.easeInOut});
+  TweenMax.to(cat.head.rotation,2, {y:0, x:-.3, ease:Power4.easeInOut});
   
-  TweenMax.to(monster.head.rotation,2, {y:0, x:-.3, ease:Power4.easeInOut});
-  
-  TweenMax.to(hero.mesh.position, 2, { x:20, ease:Power4.easeInOut});
-  TweenMax.to(hero.head.rotation, 2, { x:0, y:0, ease:Power4.easeInOut});
-  TweenMax.to(monster.mouth.rotation, 2, {x:.2, ease:Power4.easeInOut});
-  TweenMax.to(monster.mouth.rotation, 1, {x:.4, ease:Power4.easeIn, delay: 1, onComplete:function(){
+  TweenMax.to(ball.threeGroup.position, 2, { x:20, ease:Power4.easeInOut});
+  //TweenMax.to(hero.head.rotation, 2, { x:0, y:0, ease:Power4.easeInOut});
+  TweenMax.to(cat.mouth.rotation, 2, {x:.2, ease:Power4.easeInOut});
+  TweenMax.to(cat.mouth.rotation, 1, {x:.4, ease:Power4.easeIn, delay: 1, onComplete:function(){
     
     resetGame();
   }});
@@ -1326,15 +1384,16 @@ function replay(){
 
 function checkCollision(){
   var db = ball.threeGroup.position.clone().sub(wool.threeGroup.position.clone());
-  //var dm = ball.threeGroup.position.clone().sub(obstacle.mesh.position.clone());
+  var dm = ball.threeGroup.position.clone().sub(obstacle.mesh.position.clone());
   
   if(db.length() < collisionBonus){
     getBonus();
   }
   
-  //if(dm.length() < collisionObstacle && obstacle.status != "flying"){
-    //getMalus();
-  //}
+  if(dm.length() < collisionObstacle && obstacle.status != "flying"){
+    gameOver();
+    getMalus();
+  }
 }
 
 function getBonus(){
@@ -1370,6 +1429,21 @@ function getMalus(){
   }})
 }
 
+function updateObstaclePosition(){
+  if (obstacle.status=="flying")return;
+  
+  // TODO fix this,
+  if (floorRotation+obstacle.angle > 2.5 ){
+    obstacle.angle = -floorRotation + Math.random()*.3;
+    obstacle.body.rotation.y = Math.random() * Math.PI*2;
+  }
+  
+  obstacle.mesh.rotation.z = floorRotation + obstacle.angle - Math.PI/2;
+  obstacle.mesh.position.y = -floorRadius + Math.sin(floorRotation+obstacle.angle) * (floorRadius+3);
+  obstacle.mesh.position.x = Math.cos(floorRotation+obstacle.angle) * (floorRadius+3);
+  
+}
+
 function updateFloorRotation(){
     floorRotation += delta*.03 * speed;
     floorRotation = floorRotation%(Math.PI*2);
@@ -1403,7 +1477,7 @@ function loop(){
       updateDistance();
       updateCatPosition();
       updateWoolPosition();
-      //updateObstaclePosition();
+      updateObstaclePosition();
       checkCollision();
     } 
     render();
@@ -1431,6 +1505,8 @@ function init() {
     createBall();
     createWool();
     createBonusParticles();
+    //createPuddle();
+    createObstacle();
     initUI();
     resetGame();
     loop();
@@ -1441,8 +1517,8 @@ function resetGame(){
   scene.add(ball.threeGroup);
   ball.threeGroup.rotation.y = Math.PI/2;
   ball.threeGroup.position.y = 6;
-  ball.threeGroup.position.z = 50;
-  ball.threeGroup.position.x = 10;
+  ball.threeGroup.position.z = 0;
+  ball.threeGroup.position.x = 0;
 
   monsterPos = .56;
   monsterPosTarget = .65;
@@ -1450,7 +1526,7 @@ function resetGame(){
   level = 0;
   distance = 0;
   wool.threeGroup.visible = true;
-  //obstacle.mesh.visible = true;
+  obstacle.mesh.visible = true;
   gameStatus = "play";
   ball.status = "running";
   //hero.nod();
